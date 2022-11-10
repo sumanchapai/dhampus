@@ -6,11 +6,13 @@ import { Listbox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import classNames from "classnames";
 import { useSession, signIn, signOut } from "next-auth/react";
+import AwareNess from "../components/Awareness";
 
 export default function Home() {
   const { data: session } = useSession();
   return (
     <div className="px-4 my-8 md:my-12 max-w-lg mx-auto">
+      <AwareNess />
       <h1 className="text-2xl pl-2 bg-blue-800 text-white rounded inline-block px-8">
         Himali Lodge, Dhampus
       </h1>
