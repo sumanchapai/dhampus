@@ -10,11 +10,10 @@ import { SessionProvider } from "next-auth/react";
 interface GlobalContextType {
   network: WebrtcProvider | null;
   doc: Doc | null;
-  setRoom: (x: string) => void;
 }
 
 function useGlobalContext() {
-  return React.useState({ doc: null, network: null, setRoom: (string) => {} });
+  return React.useState({ doc: null, network: null });
 }
 export const GlobalContext = React.createContext<GlobalContextType | null>(
   null
@@ -26,7 +25,7 @@ export default function MyApp({
 }: AppProps): JSX.Element {
   const [globalContextValue, setGlobalContextValue] = useGlobalContext();
   const [isBrowser, setIsBrowser] = React.useState(false);
-  const [room, setRoom] = React.useState("default-room-to-not-use");
+  const [room, _] = React.useState("default-room-to-not-use");
   React.useEffect(() => {
     setIsBrowser(true);
     const ydoc = new Doc();
@@ -34,11 +33,9 @@ export default function MyApp({
     setGlobalContextValue({
       network: networkProvider,
       doc: ydoc,
-      setRoom: (x: string) => {
-        setRoom(x);
-      },
     });
     new IndexeddbPersistence("syn-index-db", ydoc);
+    console.log(ydoc);
   }, []);
   return (
     <SessionProvider session={session}>

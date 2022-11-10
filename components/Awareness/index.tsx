@@ -2,11 +2,13 @@ import { CursorArrowRaysIcon } from "@heroicons/react/20/solid";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../pages/_app";
 import randomColor from "randomcolor";
+import { useRouter } from "next/router";
 
 interface LocalUserState {
   name: string;
   cursor?: CursorState;
   color: string;
+  path: string;
 }
 
 interface CursorState {
@@ -53,16 +55,29 @@ export default function AwareNess() {
     const localUserState: LocalUserState = {
       name: (Math.random() * 1000).toFixed(),
       color: randomColor(),
+      path: "",
     };
     awareness.setLocalStateField("user", localUserState);
   }, []);
-  const noOfAliveUsers = users.filter((x) => x?.name).length;
+  const router = useRouter();
+  const myPath = router?.asPath;
+  // Filter by active users, and users in current room
+  const noOfAliveUsers = users
+    .filter((x) => x?.name)
+    .filter((x) => x.path === myPath).length;
+
+  // Changee awareness when user jump between different rooms to accurately show
+  // the number of users in a particular room
+  useEffect(() => {
+    const oldState = awareness.getLocalState()["user"] as LocalUserState;
+    awareness.setLocalStateField("user", { ...oldState, path: router.asPath });
+  }, [router.asPath]);
   return (
     <>
       {users
         // Show current cursor as well
-        // .slice(1)
         .filter((x) => x?.name && x?.cursor?.x)
+        .filter((x) => x?.path === myPath) // Filter by room
         .map(({ name, cursor, color }: LocalUserState) => (
           <div
             key={name}
@@ -81,6 +96,7 @@ export default function AwareNess() {
         <div className="flex gap-x-1">
           {users
             .filter((x) => x?.name)
+            .filter((x) => x?.path === myPath) // Filter by room
             .map(({ name, cursor, color }: LocalUserState) => (
               <div
                 key={name}
