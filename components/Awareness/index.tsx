@@ -1,5 +1,4 @@
 import { CursorArrowRaysIcon } from "@heroicons/react/20/solid";
-import classNames from "classnames";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../pages/_app";
 
@@ -41,7 +40,10 @@ export default function AwareNess() {
       const oldState = awareness.getLocalState()["user"] as LocalUserState;
       const newState: LocalUserState = {
         ...oldState,
-        cursor: { x: event.clientX + window.scrollX, y: event.clientY + window.scrollY },
+        cursor: {
+          x: event.clientX + window.scrollX,
+          y: event.clientY + window.scrollY,
+        },
       };
       awareness.setLocalStateField("user", newState);
     }
