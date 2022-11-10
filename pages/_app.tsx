@@ -5,6 +5,7 @@ import { Doc, Map as yMap } from "yjs";
 import { WebrtcProvider } from "y-webrtc";
 import "../styles/globals.css";
 import { IndexeddbPersistence } from "y-indexeddb";
+import { SessionProvider } from "next-auth/react";
 
 interface GlobalContextType {
   network: WebrtcProvider | null;
@@ -18,7 +19,10 @@ export const GlobalContext = React.createContext<GlobalContextType | null>(
   null
 );
 
-export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
+export default function MyApp({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps): JSX.Element {
   const [globalContextValue, setGlobalContextValue] = useGlobalContext();
   const [isBrowser, setIsBrowser] = React.useState(false);
   React.useEffect(() => {
@@ -29,12 +33,17 @@ export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
     new IndexeddbPersistence("syn-index-db", ydoc);
   }, []);
   return (
-    <GlobalContext.Provider value={globalContextValue}>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Himali Lodge | Dhampus </title>
-      </Head>
-      {isBrowser ? <Component {...pageProps} /> : null}
-    </GlobalContext.Provider>
+    <SessionProvider session={session}>
+      <GlobalContext.Provider value={globalContextValue}>
+        <Head>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <title>Himali Lodge | Dhampus </title>
+        </Head>
+        {isBrowser ? <Component {...pageProps} /> : null}
+      </GlobalContext.Provider>
+    </SessionProvider>
   );
 }

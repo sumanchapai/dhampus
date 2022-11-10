@@ -5,8 +5,10 @@ import { Dialog, Transition } from "@headlessui/react";
 import { Listbox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import classNames from "classnames";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Home() {
+  const { data: session } = useSession();
   return (
     <div className="px-4 my-8 md:my-12 max-w-lg mx-auto">
       <h1 className="text-2xl pl-2 bg-blue-800 text-white rounded inline-block px-8">
@@ -18,6 +20,25 @@ export default function Home() {
       <CheckIn />
       <div className="mt-16">
         <p className="text-sm text-gray-400">Made by dwellers of Annapurna</p>
+        <div className="text-sm -mx-4 px-4 py-2 mb-4">
+          {session ? (
+            <p
+              role="button"
+              className="hover:text-gray-400 text-gray-600 inline"
+              onClick={() => signOut()}
+            >
+              Logout
+            </p>
+          ) : (
+            <p
+              role="button"
+              className="hover:text-gray-400 text-gray-600 inline" 
+              onClick={() => signIn()}
+            >
+              Admin Login{" "}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -93,10 +114,11 @@ function CheckIn() {
     console.log("crr", currentPersonList);
     fieldsMap.set("people", [...currentPersonList, personId]);
   }
+  const { data: session } = useSession();
 
   return (
     <div className="mt-8 md:mt-16">
-      <form action="" onSubmit={(e) => e.preventDefault()}>
+      <form onSubmit={(e) => e.preventDefault()}>
         {fields.people.map((id, index) => (
           <Person key={id} id={id} index={index} />
         ))}
@@ -138,6 +160,17 @@ function CheckIn() {
             "Please enter a non negative value"
           )}
         </InputLabelGroup>
+        {/* Allow saving to persistent database if users signed in */}
+        {/* Guests aren't meant to sign in, only the receptionist.
+        The receptionist can get data from guests by having guets to to 
+        the same address without signing in */}
+        {session ? (
+          <input
+            className="mt-6 text-sm px-4 text-white py-2 bg-blue-600"
+            type="submit"
+            value="Save"
+          />
+        ) : null}
       </form>
     </div>
   );
@@ -290,12 +323,13 @@ function Person({ id, index }) {
             <p className="text-sm text-white">{index + 1}</p>
           </div>
           {index > 0 ? (
-            <button
+            <div
+              role="button"
               onClick={handleDelete}
               className="bg-blue-200 text-sm px-2 hover:bg-red-600 hover:text-white"
             >
               Delete
-            </button>
+            </div>
           ) : null}
         </div>
         <InputLabelGroup>
