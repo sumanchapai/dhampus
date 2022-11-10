@@ -41,7 +41,7 @@ export default function AwareNess() {
       const oldState = awareness.getLocalState()["user"] as LocalUserState;
       const newState: LocalUserState = {
         ...oldState,
-        cursor: { x: event.clientX, y: event.clientY },
+        cursor: { x: event.clientX + window.scrollX, y: event.clientY + window.scrollY },
       };
       awareness.setLocalStateField("user", newState);
     }
