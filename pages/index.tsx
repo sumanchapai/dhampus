@@ -125,12 +125,13 @@ function CheckIn() {
           <Person key={id} id={id} index={index} />
         ))}
         <div className="mt-4 mb-8">
-          <button
+          <div
+            role="button"
             onClick={addPerson}
-            className="text-sm hover:cursor-pointer hover:bg-blue-800 bg-blue-600 text-white px-4 py-2"
+            className="inline-block text-sm hover:cursor-pointer hover:bg-blue-800 bg-blue-600 text-white px-4 py-2"
           >
             Add a person
-          </button>
+          </div>
         </div>
         <InputLabelGroup>
           {Label("comingFrom", "Where are you coming from today?")}
