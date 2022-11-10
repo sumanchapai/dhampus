@@ -61,7 +61,8 @@ export default function AwareNess() {
   return (
     <>
       {users
-        .slice(1)
+        // Show current cursor as well
+        // .slice(1)
         .filter((x) => x?.name && x?.cursor?.x)
         .map(({ name, cursor, color }: LocalUserState) => (
           <div
