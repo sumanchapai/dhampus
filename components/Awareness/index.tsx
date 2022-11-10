@@ -57,6 +57,7 @@ export default function AwareNess() {
     };
     awareness.setLocalStateField("user", localUserState);
   }, []);
+  const noOfAliveUsers = users.filter((x) => x?.name).length;
   return (
     <>
       {users
@@ -88,14 +89,12 @@ export default function AwareNess() {
                   background: color,
                 }}
               >
-                <span className="text-sm opacity-0">
-                  {name.slice(1)}
-                </span>
+                <span className="text-sm opacity-0">{name.slice(1)}</span>
               </div>
             ))}
         </div>
         <div className="text-sm pl-4">
-          {users.filter((x) => x?.name).length} users live
+          {noOfAliveUsers} {noOfAliveUsers > 1 ? "users" : "user"} live
         </div>
       </div>
     </>
