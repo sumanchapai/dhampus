@@ -32,6 +32,7 @@ export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
     <GlobalContext.Provider value={globalContextValue}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Himali Lodge | Dhampus </title>
       </Head>
       {isBrowser ? <Component {...pageProps} /> : null}
     </GlobalContext.Provider>
