@@ -200,7 +200,7 @@ function InputField(
     }
   }
   return (
-    <div>
+    <div className="max-w-sm">
       <input
         onFocus={() => setFocused(true)}
         onBlur={checkValidation}
@@ -209,7 +209,7 @@ function InputField(
         name={name}
         type={type}
         value={value || ""}
-        className="lg:w-96 md:w-72 text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500"
+        className="w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500"
         onChange={updateFields}
       />
       {err ? <p className="text-red-600 text-sm">{err}</p> : null}
@@ -474,8 +474,8 @@ export function DeletePersonModal({ isOpen, setIsOpen, id, title }) {
 export function SelectDocument({ value: selected, updateFields: setSelected }) {
   return (
     <Listbox value={selected} onChange={setSelected} name="document">
-      <div>
-        <Listbox.Button className="flex justify-between lg:w-96 md:w-72 text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500">
+      <div className="max-w-sm">
+        <Listbox.Button className="flex justify-between w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500">
           <span className="block truncate">{selected}</span>
           <span className="">
             <ChevronUpDownIcon
@@ -490,7 +490,7 @@ export function SelectDocument({ value: selected, updateFields: setSelected }) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="lg:w-96 md:w-72 mt-1 max-h-60 overflow-hidden rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Listbox.Options className="w-full mt-1 max-h-60 overflow-hidden rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {documentChoices.map((choice, idx) => (
               <Listbox.Option
                 key={idx}
