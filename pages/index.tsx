@@ -402,6 +402,7 @@ export function DeletePersonModal({ isOpen, setIsOpen, id, title }) {
 
   function confirmDelete() {
     const currentPeopleList = fieldsMap.get("people") as string[];
+    setIsOpen(false);
     fieldsMap.set(
       "people",
       currentPeopleList.filter((x) => x != id)
