@@ -1,6 +1,7 @@
 import { CursorArrowRaysIcon } from "@heroicons/react/20/solid";
 import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../pages/_app";
+import randomColor from "randomcolor";
 
 interface LocalUserState {
   name: string;
@@ -11,10 +12,6 @@ interface LocalUserState {
 interface CursorState {
   x: number;
   y: number;
-}
-
-function randomColor() {
-  return "#" + Math.floor(Math.random() * 16777215).toString(16);
 }
 
 export default function AwareNess() {
