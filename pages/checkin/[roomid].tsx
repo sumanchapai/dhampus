@@ -107,7 +107,6 @@ function CheckIn() {
     setFields((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     const updated = fieldKeys.find((x) => x === e.target.name);
     if (updated) {
-      console.log("setting fieldsMap");
       fieldsMap.set(updated, e.target.value);
     }
   }
@@ -138,12 +137,6 @@ function CheckIn() {
             people: (fieldsMap.get("people") || fields.people) as string[],
           }));
         } else {
-          console.log(
-            "setting daata from",
-            fieldsMap.get(entry),
-            "rooname",
-            roomName
-          );
           setFields((prev) => ({
             ...prev,
             [entry]: fieldsMap.get(entry),
@@ -157,14 +150,6 @@ function CheckIn() {
   function addPerson() {
     const personId = generatePersonId();
     const currentPersonList = fieldsMap.get("people") as [];
-    console.log(
-      "currentpersonlist",
-      currentPersonList,
-      "from fieeldsMap",
-      fieldsMap,
-      "roomname",
-      roomName
-    );
     fieldsMap.set("people", [...currentPersonList, personId]);
   }
   const { data: session } = useSession();
