@@ -57,8 +57,6 @@ export default function AwareNess() {
     };
     awareness.setLocalStateField("user", localUserState);
   }, []);
-  //   console.log(users.filter((x) => x.name));
-  console.log(users.filter((x) => x?.name));
   return (
     <>
       {users
@@ -77,7 +75,29 @@ export default function AwareNess() {
             <CursorArrowRaysIcon />
           </div>
         ))}
-      <div>USERS: {JSON.stringify(users.length)}</div>
+
+      <div className="flex items-baseline">
+        <div className="flex gap-x-1">
+          {users
+            .filter((x) => x?.name)
+            .map(({ name, cursor, color }: LocalUserState) => (
+              <div
+                key={name}
+                className="flex justify-center items-center rounded-full h-6 w-6 lg:h-8 lg:w-8 mt-4"
+                style={{
+                  background: color,
+                }}
+              >
+                <span className="text-sm opacity-0">
+                  {name.slice(1)}
+                </span>
+              </div>
+            ))}
+        </div>
+        <div className="text-sm pl-4">
+          {users.filter((x) => x?.name).length} users live
+        </div>
+      </div>
     </>
   );
 }

@@ -12,13 +12,13 @@ export default function Home() {
   const { data: session } = useSession();
   return (
     <div className="px-4 my-8 md:my-12 max-w-lg mx-auto">
-      <AwareNess />
       <h1 className="text-2xl pl-2 bg-blue-800 text-white rounded inline-block px-8">
         Himali Lodge, Dhampus
       </h1>
       <p className="mt-8 text-sm">
         Your data is encrypted and safely stored in Himali Green servers.
       </p>
+      <AwareNess />
       <CheckIn />
       <div className="mt-16">
         <p className="text-sm text-gray-400">Made by dwellers of Annapurna</p>
@@ -34,7 +34,7 @@ export default function Home() {
           ) : (
             <p
               role="button"
-              className="hover:text-gray-400 text-gray-600 inline" 
+              className="hover:text-gray-400 text-gray-600 inline"
               onClick={() => signIn()}
             >
               Admin Login{" "}
