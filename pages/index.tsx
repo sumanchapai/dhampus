@@ -1,11 +1,19 @@
-import { useRouter } from "next/router";
-import React, { useState } from "react";
+import { Router, useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import MyDialog from "../components/Dialog";
 import { InputField, InputLabelGroup, Label } from "../components/Form";
 import Layout from "../components/Layout";
 
 export default function Home() {
   const [checkRoomDialog, setCheckRoomDialog] = useState(false);
+  const router = useRouter();
+  useEffect(() => {
+    if (router.isReady) {
+      if (router.query?.code) {
+        setCheckRoomDialog(true);
+      }
+    }
+  }, [router]);
   return (
     <Layout>
       <h1 className="text-3xl lg:text-4xl text-gray-800 rounded inline-block">
