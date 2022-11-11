@@ -98,7 +98,7 @@ export default function handler(req, res) {
         value: {
           id: "document",
           adminOnly: false,
-          label: "Phone Number",
+          label: "Document Type",
           choices: ["Citizenship", "Passport", "Driving License"],
         },
       },
