@@ -1,52 +1,12 @@
 "use client";
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { GlobalContext } from "../_app";
-import classNames from "classnames";
-import { Map as yMap } from "yjs";
+import React, { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import AwareNess from "../../components/Awareness";
-import {
-  InputField,
-  InputLabelGroup,
-  Label,
-  SelectDocument,
-} from "../../components/Form";
-import { useRouter } from "next/router";
+import { InputLabelGroup, Label } from "../../components/Form";
 import Link from "next/link";
 import MyDialog from "../../components/Dialog";
-
-// This function is used to give the Map used for a particular page.
-// This concept is helpful when multiple groups of people are trying
-// to checkin at the same time, we could have them go to different virutal
-// rooms to checkin so that they can all checkin at the same time.
-function useMap(): [string | undefined, yMap<any | null>] {
-  const { doc } = useContext(GlobalContext);
-  const router = useRouter();
-  let roomName = router?.query?.roomid;
-  const sessionsMap = doc.getMap("sessionsMap");
-  if (typeof roomName !== "string") {
-    return [undefined, null];
-  } else {
-    const roomMap = sessionsMap.get(roomName) as yMap<any>;
-    // Both roomName and roomMap have to be passed so that
-    // at times when the router query gives us an undefined value
-    // we don't use the empty map to wipe up our data instead of
-    // setting our current state to match that
-    if (roomMap) {
-      return [roomName, roomMap];
-    } else {
-      const yMapNested = new yMap();
-      sessionsMap.set(roomName, yMapNested);
-      return [roomName, sessionsMap.get(roomName) as yMap<any>];
-    }
-  }
-}
+import { useYJSBoundData, YJSBoundInput } from "../../components/Form/yjs";
+import classNames from "classnames";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -89,112 +49,33 @@ export default function Home() {
 }
 
 function CheckIn() {
-  const defaultPersonList = useMemo(() => {
-    return ["default"];
-  }, []);
-  const initialValues = {
-    comingFrom: "",
-    goingTo: "",
-    noOfAdults: 1,
-    noOfChildren: 0,
-    people: defaultPersonList,
-  };
-  const [fields, setFields] = useState(initialValues);
-
-  // Global Sync map
-  // const fieldsMap = doc.getMap(useCheckInId());
-  const [roomName, fieldsMap] = useMap();
-
-  // List of keys; for convinience
-  const fieldKeys = Object.keys(initialValues);
-
   const { data: session } = useSession();
-
-  function updateFields(e: React.ChangeEvent<HTMLInputElement>) {
-    setFields((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    const updated = fieldKeys.find((x) => x === e.target.name);
-    if (updated) {
-      fieldsMap.set(updated, e.target.value);
-    }
-  }
-
+  const { value: people, updateValue: addPerson } = useYJSBoundData(
+    ["defaultPerson"],
+    "people"
+  ) as { value: string[]; updateValue: (InitialValueType) => void };
   function generatePersonId() {
     return (Date.now() * Math.random()).toFixed().toString();
   }
-
-  // add a person
-  function addPerson() {
-    const personId = generatePersonId();
-    let currentPersonList = fieldsMap.get("people") as string[];
-    // Safeguard in case data is dirty
-    try {
-      [...currentPersonList];
-    } catch (err) {
-      throw err;
-      currentPersonList = defaultPersonList;
-    } finally {
-      fieldsMap.set("people", [...currentPersonList, personId]);
-    }
-  }
-
-  // Set list of person in global store if not set
-  useEffect(() => {
-    // Proceed only if we're in a valid room name
-    if (roomName && fieldsMap) {
-      const currentPersonList = fieldsMap.get("people") as string[];
-      if (!currentPersonList || currentPersonList.length === 0) {
-        fieldsMap.set("people", defaultPersonList);
-      }
-    }
-  }, [roomName, defaultPersonList, fieldsMap]);
-
-  useEffect(() => {
-    // Proceed only if we're in a valid room name
-    if (roomName && fieldsMap) {
-      fieldKeys.forEach((entry) => {
-        // Prevent from having no people
-        if (entry === "people") {
-          setFields((prev) => ({
-            ...prev,
-            people: (fieldsMap.get("people") || fields.people) as string[],
-          }));
-        } else {
-          setFields((prev) => ({
-            ...prev,
-            [entry]: fieldsMap.get(entry),
-          }));
-        }
-      });
-    }
-  }, [fieldKeys, fields.people, fieldsMap, roomName]);
-
-  // UseEffect to observer the map
-  // Observe yMap when yMap isn't null
-  useEffect(() => {
-    function observer(event) {
-      const changedEntries = Array.from(event.keysChanged);
-      changedEntries.forEach((entry: string) => {
-        setFields((prev) => ({ ...prev, [entry]: fieldsMap.get(entry) }));
-      });
-    }
-    if (fieldsMap) {
-      fieldsMap.observe(observer);
-      return () => {
-        fieldsMap.unobserve(observer);
-      };
-    }
-  }, [fieldsMap, roomName]);
-
   return (
     <div className="mt-8 md:mt-16">
       <form onSubmit={(e) => e.preventDefault()}>
-        {fields.people.map((id, index) => (
+        {people.map((id, index) => (
           <Person key={id} id={id} index={index} />
         ))}
         <div className="mt-4 mb-8">
           <div
             role="button"
-            onClick={addPerson}
+            onClick={() => {
+              let oldPeople = people as string[];
+              // In case the old value isn't an array
+              try {
+                [...oldPeople];
+              } catch (err) {
+                oldPeople = ["defaultPerson"];
+              }
+              addPerson([...oldPeople, generatePersonId()]);
+            }}
             className="inline-block text-sm hover:cursor-pointer hover:bg-blue-800 bg-blue-600 text-white px-4 py-2"
           >
             Add a person
@@ -202,38 +83,26 @@ function CheckIn() {
         </div>
         <InputLabelGroup>
           {Label("comingFrom", "Where are you coming from today?")}
-          {InputField("comingFrom", "text", fields.comingFrom, updateFields)}
+          <YJSBoundInput id="comingFrom" type="text" initial="" />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("goingTo", "Where are you plannning to go from here?")}
-          {InputField("goingTo", "text", fields.goingTo, updateFields)}
+          <YJSBoundInput id="goingTo" type="text" initial="" />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("noOfAdults", "No of Adults")}
-          {InputField(
-            "noOfAdults",
-            "number",
-            fields.noOfAdults,
-            updateFields,
-            (x) => Number(x) >= 1,
-            "Are you sure there are no adults?"
-          )}
+          <YJSBoundInput id="noOfAdults" type="number" initial="" min={1} />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("noOfChildren", "No of Children")}
-          {InputField(
-            "noOfChildren",
-            "number",
-            fields.noOfChildren,
-            updateFields,
-            (x) => x === "" || x === undefined || Number(x) >= 0,
-            "Please enter a non negative value"
-          )}
+          <YJSBoundInput id="noOfChildren" type="number" initial="" min={0} />
         </InputLabelGroup>
+
         {/* Allow saving to persistent database if users signed in */}
         {/* Guests aren't meant to sign in, only the receptionist.
         The receptionist can get data from guests by having guets to to 
         the same address without signing in */}
+
         {session ? (
           <div className="flex gap-x-4">
             <button
@@ -251,87 +120,15 @@ function CheckIn() {
   );
 }
 
-interface PersonType {
-  first_name: string;
-  last_name: string;
-  phone: string;
-  email: string;
-  document?: string;
-  documentNumber?: string;
-}
-
-const documentChoices = ["Citizenship", "Passport", "Driving License"];
-function Person({ id, index }) {
-  const emptyInfo: PersonType = {
-    first_name: "",
-    last_name: "",
-    phone: "",
-    email: "",
-    document: documentChoices[0],
-    documentNumber: "",
-  };
-
-  const [fields, setFields] = useState<PersonType>(emptyInfo);
-
-  // Globally synced map
-  const [roomName, fieldsMap] = useMap();
-
-  // List of field names, kept for convenience
-  const fieldNames = Object.keys(emptyInfo);
-
+function Person({ id, index }: { id: string; index: number }) {
+  const myKey = (name: string) => `person${id}-${name}`;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
-
-  // This is the key by which the person will be saved in the map
-  const myKey = useCallback(() => {
-    return `person${id}`;
-  }, [id]);
-
-  const sync = useCallback(
-    (keysToSync) => {
-      const person = fieldsMap.get(myKey());
-      keysToSync.forEach((fieldName) => {
-        // If the person exists and the fieldName is not null
-        if (person && person[fieldName]) {
-          setFields((prev) => ({
-            ...prev,
-            [fieldName]: fieldsMap.get(myKey())[fieldName],
-          }));
-        }
-      });
-    },
-    [fieldsMap, myKey]
-  );
-
-  // The following function determines how local edits are handled
-  function updateFields(e: React.ChangeEvent<HTMLInputElement>) {
-    const newPerson = { ...fields, [e.target.name]: [e.target.value] };
-    // Set Locally
-    setFields((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    // Send global update
-    fieldsMap.set(myKey(), newPerson);
-  }
   function handleDelete() {
     // Open delete modal
     setShowDeleteModal(true);
   }
-
-  useEffect(() => {
-    function observer(event) {
-      const changedEntries = Array.from(event.keysChanged);
-      // If ChangedEntries contains key for the person, rerender the person details
-      if (changedEntries.find((x) => x === myKey())) {
-        sync(fieldNames);
-      }
-    }
-    if (roomName && fieldsMap) {
-      fieldsMap.observe(observer);
-      return () => {
-        fieldsMap.unobserve(observer);
-      };
-    }
-  }, [fieldNames, fieldsMap, myKey, roomName, sync]);
-
+  const documentChoices = ["Citizenship", "Passport", "Driving License"];
   return (
     <>
       <DeletePersonModal
@@ -339,11 +136,12 @@ function Person({ id, index }) {
         isOpen={showDeleteModal}
         setIsOpen={setShowDeleteModal}
         id={id}
-        title={
-          fields.first_name
-            ? `You're deleting ${fields.first_name}'s record`
-            : "Are you sure you want to delete this record?"
-        }
+        title="foobar"
+        // title={
+        //   // fields.first_name
+        //   //   ? `You're deleting ${fields.first_name}'s record`
+        //   //   : "Are you sure you want to delete this record?"
+        // }
       />
       <div className="border-l mb-8 pl-4">
         <div className="flex flex-row gap-x-4 items-center">
@@ -374,43 +172,58 @@ function Person({ id, index }) {
         </div>
         <InputLabelGroup>
           {Label("first_name", "First Name")}
-          {InputField("first_name", "text", fields.first_name, updateFields)}
+          <YJSBoundInput
+            id={myKey("first_name")}
+            name="first_name"
+            type="text"
+            initial=""
+          />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("last_name", "Last Name")}
-          {InputField("last_name", "text", fields.last_name, updateFields)}
+          <YJSBoundInput
+            id={myKey("last_name")}
+            name="last_name"
+            type="text"
+            initial=""
+          />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("phone", "Phone")}
-          {InputField("phone", "phone", fields.phone, updateFields)}
+          <YJSBoundInput
+            id={myKey("phone")}
+            name="phone"
+            type="text"
+            initial=""
+          />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("email", "Email")}
-          {InputField("email", "email", fields.email, updateFields)}
+          <YJSBoundInput
+            id={myKey("email")}
+            name="email"
+            type="email"
+            initial=""
+          />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("document", "Document Type")}
-          <SelectDocument
+          <YJSBoundInput
+            id={myKey("document")}
+            name="documentt"
+            type="choice"
+            initial={documentChoices.length > 0 ? documentChoices[0] : ""}
             choices={documentChoices}
-            value={fields.document}
-            updateFields={(newValue) => {
-              const newPerson = {
-                ...(fieldsMap.get(myKey()) as Object),
-                document: newValue,
-              };
-              setFields((prev) => ({ ...prev, document: newValue }));
-              fieldsMap.set(myKey(), newPerson);
-            }}
           />
         </InputLabelGroup>
         <InputLabelGroup>
           {Label("documentNumber", "Document Number")}
-          {InputField(
-            "documentNumber",
-            "documentNumber",
-            fields.documentNumber,
-            updateFields
-          )}
+          <YJSBoundInput
+            id={myKey("documentNumber")}
+            name="documentNumber"
+            type="text"
+            initial=""
+          />
         </InputLabelGroup>
       </div>
     </>
@@ -429,18 +242,18 @@ export function DeletePersonModal({
   }
 
   // Globally synced map
-  const [_, fieldsMap] = useMap();
+  const { value: people, updateValue: deletePerson } = useYJSBoundData(
+    ["defaultPerson"],
+    "people"
+  ) as { value: string[]; updateValue: (InitialValueType) => void };
 
   function confirmDelete() {
-    const currentPeopleList = fieldsMap.get("people") as string[];
+    const currentPeopleList = people;
     setIsOpen(false);
     // Delete after a certain interval for UX
     setDeleting(true);
     setTimeout(() => {
-      fieldsMap.set(
-        "people",
-        currentPeopleList.filter((x) => x != id)
-      );
+      deletePerson(currentPeopleList.filter((x) => x != id));
     }, 300);
   }
 

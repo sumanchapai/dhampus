@@ -49,14 +49,10 @@ export function InputField(
   );
 }
 
-export function SelectDocument({
-  choices,
-  value: selected,
-  updateFields: setSelected,
-}) {
+export function InputChoose({ choices, selected, setSelected }) {
   return (
     <Listbox value={selected} onChange={setSelected} name="document">
-      <div className="max-w-sm">
+      <div className="w-full">
         <Listbox.Button className="flex justify-between w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500">
           <span className="block truncate">{selected}</span>
           <span className="">
