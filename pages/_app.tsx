@@ -1,11 +1,11 @@
 import * as React from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
-import { Doc, Map as yMap } from "yjs";
+import { Doc } from "yjs";
 import { WebrtcProvider } from "y-webrtc";
-import "../styles/globals.css";
 import { IndexeddbPersistence } from "y-indexeddb";
 import { SessionProvider } from "next-auth/react";
+import "../styles/globals.css";
 
 interface GlobalContextType {
   network: WebrtcProvider | null;
@@ -29,6 +29,7 @@ export default function MyApp({
   React.useEffect(() => {
     setIsBrowser(true);
     const ydoc = new Doc();
+    // Need to try what will be the effect of passing empty list of signaling servers
     const networkProvider = new WebrtcProvider(room, ydoc);
     setGlobalContextValue({
       network: networkProvider,

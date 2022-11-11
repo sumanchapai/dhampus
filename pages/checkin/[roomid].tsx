@@ -119,7 +119,6 @@ function CheckIn() {
   function addPerson() {
     const personId = generatePersonId();
     let currentPersonList = fieldsMap.get("people") as string[];
-    console.log("current", currentPersonList);
     // Safeguard in case data is dirty
     try {
       [...currentPersonList];
@@ -166,17 +165,14 @@ function CheckIn() {
   // Observe yMap when yMap isn't null
   useEffect(() => {
     function observer(event) {
-      console.log("observingggg");
       const changedEntries = Array.from(event.keysChanged);
       changedEntries.forEach((entry: string) => {
         setFields((prev) => ({ ...prev, [entry]: fieldsMap.get(entry) }));
       });
     }
     if (fieldsMap) {
-      console.log("observation called");
       fieldsMap.observe(observer);
       return () => {
-        console.log("un observation called");
         fieldsMap.unobserve(observer);
       };
     }
@@ -188,6 +184,7 @@ function CheckIn() {
         {fields.people.map((id, index) => (
           <Person key={id} id={id} index={index} />
         ))}
+        {JSON.stringify(fields, null, 2)}
         <div className="mt-4 mb-8">
           <div
             role="button"
@@ -223,7 +220,7 @@ function CheckIn() {
             "number",
             fields.noOfChildren,
             updateFields,
-            (x) => x === "" || Number(x) >= 0,
+            (x) => x === "" || x === undefined || Number(x) >= 0,
             "Please enter a non negative value"
           )}
         </InputLabelGroup>
