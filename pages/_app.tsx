@@ -35,7 +35,6 @@ export default function MyApp({
       doc: ydoc,
     });
     new IndexeddbPersistence("syn-index-db", ydoc);
-    console.log(ydoc);
   }, []);
   return (
     <SessionProvider session={session}>

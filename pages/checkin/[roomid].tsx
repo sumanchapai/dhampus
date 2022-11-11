@@ -2,14 +2,18 @@
 import React, { useContext, useEffect, useState, Fragment } from "react";
 import { GlobalContext } from "../_app";
 import { Dialog, Transition } from "@headlessui/react";
-import { Listbox } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import classNames from "classnames";
 import { Map as yMap } from "yjs";
 import { useSession, signIn, signOut } from "next-auth/react";
 import AwareNess from "../../components/Awareness";
-import { InputField, InputLabelGroup, Label } from "../../components/Form";
+import {
+  InputField,
+  InputLabelGroup,
+  Label,
+  SelectDocument,
+} from "../../components/Form";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 // This function is used to give the Map used for a particular page.
 // This concept is helpful when multiple groups of people are trying
@@ -42,9 +46,11 @@ export default function Home() {
   const { data: session } = useSession();
   return (
     <div className="px-4 my-8 md:my-12 max-w-lg mx-auto">
-      <h1 className="text-2xl pl-2 bg-blue-800 text-white rounded inline-block px-8">
-        Himali Lodge, Dhampus
-      </h1>
+      <Link href="/">
+        <h1 className="text-2xl pl-2 bg-blue-800 text-white rounded inline-block px-8">
+          Himali Lodge, Dhampus
+        </h1>
+      </Link>
       <p className="mt-8 text-sm">
         Your data is encrypted and safely stored in Himali Green servers.
       </p>
@@ -94,15 +100,8 @@ function CheckIn() {
   // List of keys; for convinience
   const fieldKeys = Object.keys(initialValues);
 
-  // Observe yMap when yMap isn't null
-  if (fieldsMap) {
-    fieldsMap.observe((event) => {
-      const changedEntries = Array.from(event.keysChanged);
-      changedEntries.forEach((entry) => {
-        setFields((prev) => ({ ...prev, [entry]: fieldsMap.get(entry) }));
-      });
-    });
-  }
+  const { data: session } = useSession();
+
   function updateFields(e: React.ChangeEvent<HTMLInputElement>) {
     setFields((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     const updated = fieldKeys.find((x) => x === e.target.name);
@@ -113,6 +112,22 @@ function CheckIn() {
 
   function generatePersonId() {
     return (Date.now() * Math.random()).toFixed().toString();
+  }
+
+  // add a person
+  function addPerson() {
+    const personId = generatePersonId();
+    let currentPersonList = fieldsMap.get("people") as string[];
+    console.log("current", currentPersonList);
+    // Safeguard in case data is dirty
+    try {
+      [...currentPersonList];
+    } catch (err) {
+      throw err;
+      currentPersonList = defaultPersonList;
+    } finally {
+      fieldsMap.set("people", [...currentPersonList, personId]);
+    }
   }
 
   // Set list of person in global store if not set
@@ -146,13 +161,25 @@ function CheckIn() {
     }
   }, [fieldsMap, roomName]);
 
-  // add a person
-  function addPerson() {
-    const personId = generatePersonId();
-    const currentPersonList = fieldsMap.get("people") as [];
-    fieldsMap.set("people", [...currentPersonList, personId]);
-  }
-  const { data: session } = useSession();
+  // UseEffect to observer the map
+  // Observe yMap when yMap isn't null
+  useEffect(() => {
+    function observer(event) {
+      console.log("observingggg");
+      const changedEntries = Array.from(event.keysChanged);
+      changedEntries.forEach((entry: string) => {
+        setFields((prev) => ({ ...prev, [entry]: fieldsMap.get(entry) }));
+      });
+    }
+    if (fieldsMap) {
+      console.log("observation called");
+      fieldsMap.observe(observer);
+      return () => {
+        console.log("un observation called");
+        fieldsMap.unobserve(observer);
+      };
+    }
+  }, [fieldsMap, roomName]);
 
   return (
     <div className="mt-8 md:mt-16">
@@ -195,7 +222,7 @@ function CheckIn() {
             "number",
             fields.noOfChildren,
             updateFields,
-            (x) => Number(x) >= 0,
+            (x) => x === "" || Number(x) >= 0,
             "Please enter a non negative value"
           )}
         </InputLabelGroup>
@@ -204,11 +231,16 @@ function CheckIn() {
         The receptionist can get data from guests by having guets to to 
         the same address without signing in */}
         {session ? (
-          <input
-            className="mt-6 text-sm px-4 text-white py-2 bg-blue-600"
-            type="submit"
-            value="Save"
-          />
+          <div className="flex gap-x-4">
+            <button
+              onClick={() => {
+                // Code to save data to backend
+              }}
+              className="mt-6 text-sm px-4 text-white py-2 bg-blue-600 hover:bg-blue-800"
+            >
+              Save
+            </button>
+          </div>
         ) : null}
       </form>
     </div>
@@ -243,20 +275,12 @@ function Person({ id, index }) {
   // List of field names, kept for convenience
   const fieldNames = Object.keys(emptyInfo);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setDeleting] = useState(false);
+
   // This is the key by which the person will be saved in the map
   function myKey() {
     return `person${id}`;
-  }
-
-  // Observe yMap if fieldsMap isn't null
-  if (fieldsMap) {
-    fieldsMap.observe((event) => {
-      const changedEntries = Array.from(event.keysChanged);
-      // If ChangedEntries contains key for the person, rerender the person details
-      if (changedEntries.find((x) => x === myKey())) {
-        sync(fieldNames);
-      }
-    });
   }
 
   function sync(keysToSync) {
@@ -272,11 +296,6 @@ function Person({ id, index }) {
     });
   }
 
-  useEffect(() => {
-    // Update data on initial load based on global data
-    if (roomName && fieldsMap) sync(fieldNames);
-  }, [roomName]);
-
   // The following function determines how local edits are handled
   function updateFields(e: React.ChangeEvent<HTMLInputElement>) {
     const newPerson = { ...fields, [e.target.name]: [e.target.value] };
@@ -289,8 +308,22 @@ function Person({ id, index }) {
     // Do nothing
     setShowDeleteModal(true);
   }
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    function observer(event) {
+      const changedEntries = Array.from(event.keysChanged);
+      // If ChangedEntries contains key for the person, rerender the person details
+      if (changedEntries.find((x) => x === myKey())) {
+        sync(fieldNames);
+      }
+    }
+    if (roomName && fieldsMap) {
+      fieldsMap.observe(observer);
+      return () => {
+        fieldsMap.unobserve(observer);
+      };
+    }
+  }, [fieldsMap]);
 
   return (
     <>
@@ -351,6 +384,7 @@ function Person({ id, index }) {
         <InputLabelGroup>
           {Label("document", "Document Type")}
           <SelectDocument
+            choices={documentChoices}
             value={fields.document}
             updateFields={(newValue) => {
               const newPerson = {
@@ -387,13 +421,8 @@ export function DeletePersonModal({
     setIsOpen(false);
   }
 
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  const { doc } = useContext(GlobalContext);
   // Globally synced map
-  const [roomName, fieldsMap] = useMap();
+  const [_, fieldsMap] = useMap();
 
   function confirmDelete() {
     const currentPeopleList = fieldsMap.get("people") as string[];
@@ -469,60 +498,5 @@ export function DeletePersonModal({
         </Dialog>
       </Transition>
     </>
-  );
-}
-
-export function SelectDocument({ value: selected, updateFields: setSelected }) {
-  return (
-    <Listbox value={selected} onChange={setSelected} name="document">
-      <div className="max-w-sm">
-        <Listbox.Button className="flex justify-between w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500">
-          <span className="block truncate">{selected}</span>
-          <span className="">
-            <ChevronUpDownIcon
-              className="h-5 w-5 text-gray-400"
-              aria-hidden="true"
-            />
-          </span>
-        </Listbox.Button>
-        <Transition
-          as={Fragment}
-          leave="transition ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <Listbox.Options className="w-full mt-1 max-h-60 overflow-hidden rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-            {documentChoices.map((choice, idx) => (
-              <Listbox.Option
-                key={idx}
-                className={({ active }) =>
-                  `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                    active ? "bg-blue-100 text-gray-900" : "text-gray-900"
-                  }`
-                }
-                value={choice}
-              >
-                {({ selected }) => (
-                  <>
-                    <span
-                      className={`block truncate ${
-                        selected ? "font-medium" : "font-normal"
-                      }`}
-                    >
-                      {choice}
-                    </span>
-                    {selected ? (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                      </span>
-                    ) : null}
-                  </>
-                )}
-              </Listbox.Option>
-            ))}
-          </Listbox.Options>
-        </Transition>
-      </div>
-    </Listbox>
   );
 }

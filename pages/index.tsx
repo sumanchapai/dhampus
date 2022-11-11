@@ -29,7 +29,7 @@ export default function Home() {
 
 export function PromptVirutalRoom({ isOpen, setIsOpen }) {
   function closeModal() {
-    if (code !== "") setIsOpen(false);
+    setIsOpen(false);
   }
   const [code, setCode] = useState("");
   const router = useRouter();
@@ -82,13 +82,21 @@ export function PromptVirutalRoom({ isOpen, setIsOpen }) {
                           setCode(e.target.value);
                         })}
                       </InputLabelGroup>
-                      <button
-                        type="submit"
-                        className="mt-4 inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                        onClick={closeModal}
-                      >
-                        Star Check-In
-                      </button>
+                      <div className="flex gap-x-4">
+                        <button
+                          type="submit"
+                          className="mt-4 inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        >
+                          Star Check-In
+                        </button>
+                        <button
+                          type="submit"
+                          className="mt-4 inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                          onClick={closeModal}
+                        >
+                          Go Back
+                        </button>
+                      </div>
                     </form>
                   </div>
                 </Dialog.Panel>
