@@ -7,13 +7,14 @@ import Link from "next/link";
 import MyDialog from "../../components/Dialog";
 import { useYJSBoundData, YJSBoundInput } from "../../components/Form/yjs";
 import classNames from "classnames";
+import Layout from "../../components/Layout";
 
 export default function Home() {
   const { data: session } = useSession();
   return (
-    <div className="px-4 my-8 md:my-12 max-w-lg mx-auto">
+    <Layout>
       <Link href="/">
-        <h1 className="text-2xl pl-2 bg-blue-800 text-white rounded inline-block px-8">
+        <h1 className="text-2xl px-2 bg-blue-800 text-white rounded inline-block">
           Himali Lodge, Dhampus
         </h1>
       </Link>
@@ -22,29 +23,7 @@ export default function Home() {
       </p>
       <AwareNess />
       <CheckIn />
-      <div className="mt-16">
-        <p className="text-sm text-gray-400">Made by dwellers of Annapurna</p>
-        <div className="text-sm -mx-4 px-4 py-2 mb-4">
-          {session ? (
-            <p
-              role="button"
-              className="hover:text-gray-400 text-gray-600 inline"
-              onClick={() => signOut()}
-            >
-              Logout
-            </p>
-          ) : (
-            <p
-              role="button"
-              className="hover:text-gray-400 text-gray-600 inline"
-              onClick={() => signIn()}
-            >
-              Admin Login{" "}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
+    </Layout>
   );
 }
 

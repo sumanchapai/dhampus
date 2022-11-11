@@ -2,12 +2,13 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import MyDialog from "../components/Dialog";
 import { InputField, InputLabelGroup, Label } from "../components/Form";
+import Layout from "../components/Layout";
 
 export default function Home() {
   const [checkRoomDialog, setCheckRoomDialog] = useState(false);
   return (
-    <div className="px-4 my-8 md:my-12 max-w-lg mx-auto">
-      <h1 className="text-3xl lg:text-4xl pl-2 text-gray-800 rounded inline-block px-8">
+    <Layout>
+      <h1 className="text-3xl lg:text-4xl text-gray-800 rounded inline-block">
         Welcome to <span className="text-blue-600">Himali Lodge, Dhampus</span>
       </h1>
       <div className="mt-8">
@@ -23,7 +24,7 @@ export default function Home() {
         isOpen={checkRoomDialog}
         setIsOpen={setCheckRoomDialog}
       />
-    </div>
+    </Layout>
   );
 }
 
