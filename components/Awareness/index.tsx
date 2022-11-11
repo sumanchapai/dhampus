@@ -69,8 +69,15 @@ export default function AwareNess() {
   // Changee awareness when user jump between different rooms to accurately show
   // the number of users in a particular room
   useEffect(() => {
-    const oldState = awareness.getLocalState()["user"] as LocalUserState;
-    awareness.setLocalStateField("user", { ...oldState, path: router.asPath });
+    const oldState = awareness.getLocalState()
+      ? awareness.getLocalState()["user"]
+      : (null as LocalUserState | null);
+    if (oldState) {
+      awareness.setLocalStateField("user", {
+        ...oldState,
+        path: router.asPath,
+      });
+    }
   }, [awareness, router.asPath]);
   return (
     <>

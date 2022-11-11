@@ -8,8 +8,35 @@ import MyDialog from "../../components/Dialog";
 import { useYJSBoundData, YJSBoundInput } from "../../components/Form/yjs";
 import classNames from "classnames";
 import Layout from "../../components/Layout";
+import { GetStaticProps, GetStaticPaths } from "next";
+import { FormField, FormFields } from "../../types/api/checkin";
+import { FormFieldMapper } from "../../components/Form/mapper";
 
-export default function Home() {
+interface PageProps {
+  formFields: FormFields;
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [],
+    fallback: "blocking", // blocking means page will not be shown until all data is available
+  };
+};
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const formFields: FormFields = await fetch(
+    `${process.env.API_URL}/api/checkIn`
+  )
+    .then((res) => res.json())
+    .catch((err) => {
+      console.log(err);
+    });
+  return {
+    props: { formFields } as PageProps,
+  };
+};
+
+export default function Home(props: PageProps) {
   return (
     <Layout>
       <Link href="/">
@@ -21,12 +48,12 @@ export default function Home() {
         Your data is encrypted and safely stored in Himali Green servers.
       </p>
       <AwareNess />
-      <CheckIn />
+      {CheckIn(props.formFields.group, props.formFields.individual)}
     </Layout>
   );
 }
 
-function CheckIn() {
+function CheckIn(group: Array<FormField>, individual: Array<FormField>) {
   const { data: session } = useSession();
   const { value: people, updateValue: addPerson } = useYJSBoundData(
     ["defaultPerson"],
@@ -39,7 +66,7 @@ function CheckIn() {
     <div className="mt-8 md:mt-16">
       <form onSubmit={(e) => e.preventDefault()}>
         {people.map((id, index) => (
-          <Person key={id} id={id} index={index} />
+          <Person key={id} id={id} index={index} questions={individual} />
         ))}
         <div className="mt-4 mb-8">
           <div
@@ -59,22 +86,12 @@ function CheckIn() {
             Add a person
           </div>
         </div>
-        <InputLabelGroup>
-          {Label("comingFrom", "Where are you coming from today?")}
-          <YJSBoundInput id="comingFrom" type="text" initial="" />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("goingTo", "Where are you plannning to go from here?")}
-          <YJSBoundInput id="goingTo" type="text" initial="" />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("noOfAdults", "No of Adults")}
-          <YJSBoundInput id="noOfAdults" type="number" initial="" min={1} />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("noOfChildren", "No of Children")}
-          <YJSBoundInput id="noOfChildren" type="number" initial="" min={0} />
-        </InputLabelGroup>
+
+        {/* Group Questions */}
+
+        {group.map((question, index) => (
+          <FormFieldMapper key={index} data={question} />
+        ))}
 
         {/* Allow saving to persistent database if users signed in */}
         {/* Guests aren't meant to sign in, only the receptionist.
@@ -98,7 +115,15 @@ function CheckIn() {
   );
 }
 
-function Person({ id, index }: { id: string; index: number }) {
+function Person({
+  id,
+  index,
+  questions,
+}: {
+  id: string;
+  index: number;
+  questions: Array<FormField>;
+}) {
   const myKey = (name: string) => `person${id}-${name}`;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
@@ -143,61 +168,17 @@ function Person({ id, index }: { id: string; index: number }) {
             </div>
           ) : null}
         </div>
-        <InputLabelGroup>
-          {Label("first_name", "First Name")}
-          <YJSBoundInput
-            id={myKey("first_name")}
-            name="first_name"
-            type="text"
-            initial=""
+
+        {/* Individual Questions */}
+
+        {questions.map((question, index) => (
+          <FormFieldMapper
+            key={index}
+            data={question}
+            name={question.value.id}
+            newKey={myKey(question.value.id)}
           />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("last_name", "Last Name")}
-          <YJSBoundInput
-            id={myKey("last_name")}
-            name="last_name"
-            type="text"
-            initial=""
-          />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("phone", "Phone")}
-          <YJSBoundInput
-            id={myKey("phone")}
-            name="phone"
-            type="text"
-            initial=""
-          />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("email", "Email")}
-          <YJSBoundInput
-            id={myKey("email")}
-            name="email"
-            type="email"
-            initial=""
-          />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("document", "Document Type")}
-          <YJSBoundInput
-            id={myKey("document")}
-            name="documentt"
-            type="choice"
-            initial={documentChoices.length > 0 ? documentChoices[0] : ""}
-            choices={documentChoices}
-          />
-        </InputLabelGroup>
-        <InputLabelGroup>
-          {Label("documentNumber", "Document Number")}
-          <YJSBoundInput
-            id={myKey("documentNumber")}
-            name="documentNumber"
-            type="text"
-            initial=""
-          />
-        </InputLabelGroup>
+        ))}
       </div>
     </>
   );
