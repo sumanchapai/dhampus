@@ -136,12 +136,7 @@ function Person({ id, index }: { id: string; index: number }) {
         isOpen={showDeleteModal}
         setIsOpen={setShowDeleteModal}
         id={id}
-        title="foobar"
-        // title={
-        //   // fields.first_name
-        //   //   ? `You're deleting ${fields.first_name}'s record`
-        //   //   : "Are you sure you want to delete this record?"
-        // }
+        title="Are you sure you want to delete this record?"
       />
       <div className="border-l mb-8 pl-4">
         <div className="flex flex-row gap-x-4 items-center">
