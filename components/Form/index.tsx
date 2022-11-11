@@ -10,8 +10,25 @@ export function Label(id: string, title: string) {
   );
 }
 
-export function InputLabelGroup({ children }: { children: React.ReactNode }) {
-  return <div className="mt-4">{children}</div>;
+export function InputLabelGroup({
+  isPrivate,
+  children,
+}: {
+  isPrivate?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-4">
+      {isPrivate ? (
+        <div className="mb-2">
+          <span className="text-white bg-red-400 px-2 py-1 text-xs rounded-sm">
+            Hiden from guests
+          </span>
+        </div>
+      ) : null}
+      {children}
+    </div>
+  );
 }
 
 export function InputField(

@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { InputChoose } from ".";
@@ -12,15 +13,12 @@ interface YJSBoundInputType {
   min?: number;
   name?: string;
   choices?: string[];
+  extraClasses?: string[];
 }
-export function YJSBoundInput({
-  id,
-  name,
-  type,
-  initial,
-  min,
-  choices,
-}: YJSBoundInputType) {
+export function YJSBoundInput(
+  { id, name, type, initial, min, choices }: YJSBoundInputType,
+  extraClasses
+) {
   const { value, updateValue } = useYJSBoundData(initial, id);
   if (type === "number") {
     return (
@@ -45,10 +43,26 @@ export function YJSBoundInput({
     );
   }
 
+  if (type === "textarea") {
+    return (
+      <textarea
+        value={value}
+        onChange={(e) => updateValue(e.target.value)}
+        className={classNames(
+          "w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500",
+          extraClasses
+        )}
+      />
+    );
+  }
+
   return (
     <input
       name={name || id}
-      className="w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500"
+      className={classNames(
+        "w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500",
+        extraClasses
+      )}
       id={id}
       type={type}
       value={value}
