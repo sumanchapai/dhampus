@@ -29,7 +29,10 @@ export default function MyApp({
     setIsBrowser(true);
     const ydoc = new Doc();
     // Need to try what will be the effect of passing empty list of signaling servers
-    const networkProvider = new WebrtcProvider("himgreen-pax-viralroom-room-to-not-use", ydoc);
+    const networkProvider = new WebrtcProvider(
+      "himgreen-pax-viralroom-room-to-not-use",
+      ydoc
+    );
     setGlobalContextValue({
       network: networkProvider,
       doc: ydoc,

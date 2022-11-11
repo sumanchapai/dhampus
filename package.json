@@ -17,6 +17,7 @@
     "next-auth": "^4.16.4",
     "randomcolor": "^0.6.2",
     "react": "18.2.0",
+    "react-confetti": "^6.1.0",
     "react-dom": "18.2.0",
     "y-indexeddb": "^9.0.9",
     "y-webrtc": "^10.2.3",

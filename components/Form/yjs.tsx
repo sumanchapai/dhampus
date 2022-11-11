@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { InputChoose } from ".";
 import { GlobalContext } from "../../pages/_app";
 
-type InitialValueType = number | string | Array<string>;
+type InitialValueType = number | string | Array<string> | boolean;
 
 interface YJSBoundInputType {
   id: string;
@@ -27,7 +27,7 @@ export function YJSBoundInput(
         className="w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500"
         id={id}
         type={type}
-        value={value}
+        value={String(value)}
         onChange={(e) => updateValue(e.target.value)}
         min={Number(min).toString()}
       />
@@ -46,7 +46,7 @@ export function YJSBoundInput(
   if (type === "textarea") {
     return (
       <textarea
-        value={value}
+        value={String(value)}
         onChange={(e) => updateValue(e.target.value)}
         className={classNames(
           "w-full text-gray-700 px-4 py-2 border-gray-200 border-2 focus:outline-blue-500",
@@ -65,7 +65,7 @@ export function YJSBoundInput(
       )}
       id={id}
       type={type}
-      value={value}
+      value={String(value)}
       onChange={(e) => updateValue(e.target.value)}
     />
   );

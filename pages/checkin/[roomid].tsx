@@ -2,15 +2,17 @@
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import AwareNess from "../../components/Awareness";
-import { InputLabelGroup, Label } from "../../components/Form";
 import Link from "next/link";
 import MyDialog from "../../components/Dialog";
-import { useYJSBoundData, YJSBoundInput } from "../../components/Form/yjs";
+import { useYJSBoundData } from "../../components/Form/yjs";
 import classNames from "classnames";
 import Layout from "../../components/Layout";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { FormField, FormFields } from "../../types/api/checkin";
 import { FormFieldMapper } from "../../components/Form/mapper";
+import { useRouter } from "next/router";
+import Confetti from "react-confetti";
+import { useWindowSize } from "../../lib/hooks";
 
 interface PageProps {
   formFields: FormFields;
@@ -98,20 +100,77 @@ function CheckIn(group: Array<FormField>, individual: Array<FormField>) {
         The receptionist can get data from guests by having guets to to 
         the same address without signing in */}
 
-        {session ? (
+        <SaveButton />
+      </form>
+    </div>
+  );
+}
+
+function SaveButton() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { value: isSuccessFul, updateValue: setIsSuccessFul } = useYJSBoundData(
+    false,
+    "successfulCheckin"
+  );
+  function closeModal() {
+    router.push("/");
+  }
+  const [width, height] = useWindowSize();
+
+  return (
+    <>
+      {isSuccessFul && !session ? (
+        <div className="">
+          <Confetti width={width} height={height} />
+        </div>
+      ) : null}
+      {/* Success Dialog to show to guests on successful checkin */}
+      <MyDialog
+        isOpen={isSuccessFul && !session}
+        titleString="Welcome"
+        closeModal={closeModal}
+      >
+        <div className="mt-4">
+          <p className="text-gray-600">
+            You&apos;re checked in! Thank you for staying with us. We hope you
+            enjoy!
+          </p>
+        </div>
+      </MyDialog>
+      {session ? (
+        <div>
           <div className="flex gap-x-4">
             <button
               onClick={() => {
                 // Code to save data to backend
+                // Show success screen to client
+                setIsSuccessFul(true);
               }}
               className="mt-6 text-sm px-4 text-white py-2 bg-blue-600 hover:bg-blue-800"
             >
               Save
             </button>
           </div>
-        ) : null}
-      </form>
-    </div>
+          {isSuccessFul ? (
+            <div>
+              <p className="text-sm mt-2 font-medium text-gray-700">
+                Editing by guests is disabled as they&apos; are marked as
+                checked in.
+              </p>
+              <p className="text-sm mt-2 font-medium text-blue-800">
+                <span
+                  onClick={() => setIsSuccessFul(false)}
+                  className="hover:cursor-pointer"
+                >
+                  Allow to edit
+                </span>
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -131,7 +190,6 @@ function Person({
     // Open delete modal
     setShowDeleteModal(true);
   }
-  const documentChoices = ["Citizenship", "Passport", "Driving License"];
   return (
     <>
       <DeletePersonModal
