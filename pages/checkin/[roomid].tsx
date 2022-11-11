@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import AwareNess from "../../components/Awareness";
 import { InputLabelGroup, Label } from "../../components/Form";
 import Link from "next/link";
@@ -10,7 +10,6 @@ import classNames from "classnames";
 import Layout from "../../components/Layout";
 
 export default function Home() {
-  const { data: session } = useSession();
   return (
     <Layout>
       <Link href="/">
