@@ -1,7 +1,12 @@
 "use client";
-import React, { useContext, useEffect, useState, Fragment } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { GlobalContext } from "../_app";
-import { Dialog, Transition } from "@headlessui/react";
 import classNames from "classnames";
 import { Map as yMap } from "yjs";
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -84,7 +89,9 @@ export default function Home() {
 }
 
 function CheckIn() {
-  const defaultPersonList = ["default"];
+  const defaultPersonList = useMemo(() => {
+    return ["default"];
+  }, []);
   const initialValues = {
     comingFrom: "",
     goingTo: "",
@@ -139,7 +146,7 @@ function CheckIn() {
         fieldsMap.set("people", defaultPersonList);
       }
     }
-  }, [roomName]);
+  }, [roomName, defaultPersonList, fieldsMap]);
 
   useEffect(() => {
     // Proceed only if we're in a valid room name
@@ -159,7 +166,7 @@ function CheckIn() {
         }
       });
     }
-  }, [fieldsMap, roomName]);
+  }, [fieldKeys, fields.people, fieldsMap, roomName]);
 
   // UseEffect to observer the map
   // Observe yMap when yMap isn't null
@@ -184,7 +191,6 @@ function CheckIn() {
         {fields.people.map((id, index) => (
           <Person key={id} id={id} index={index} />
         ))}
-        {JSON.stringify(fields, null, 2)}
         <div className="mt-4 mb-8">
           <div
             role="button"
@@ -277,22 +283,25 @@ function Person({ id, index }) {
   const [isDeleting, setDeleting] = useState(false);
 
   // This is the key by which the person will be saved in the map
-  function myKey() {
+  const myKey = useCallback(() => {
     return `person${id}`;
-  }
+  }, [id]);
 
-  function sync(keysToSync) {
-    const person = fieldsMap.get(myKey());
-    keysToSync.forEach((fieldName) => {
-      // If the person exists and the fieldName is not null
-      if (person && person[fieldName]) {
-        setFields((prev) => ({
-          ...prev,
-          [fieldName]: fieldsMap.get(myKey())[fieldName],
-        }));
-      }
-    });
-  }
+  const sync = useCallback(
+    (keysToSync) => {
+      const person = fieldsMap.get(myKey());
+      keysToSync.forEach((fieldName) => {
+        // If the person exists and the fieldName is not null
+        if (person && person[fieldName]) {
+          setFields((prev) => ({
+            ...prev,
+            [fieldName]: fieldsMap.get(myKey())[fieldName],
+          }));
+        }
+      });
+    },
+    [fieldsMap, myKey]
+  );
 
   // The following function determines how local edits are handled
   function updateFields(e: React.ChangeEvent<HTMLInputElement>) {
@@ -303,7 +312,7 @@ function Person({ id, index }) {
     fieldsMap.set(myKey(), newPerson);
   }
   function handleDelete() {
-    // Do nothing
+    // Open delete modal
     setShowDeleteModal(true);
   }
 
@@ -321,7 +330,7 @@ function Person({ id, index }) {
         fieldsMap.unobserve(observer);
       };
     }
-  }, [fieldsMap]);
+  }, [fieldNames, fieldsMap, myKey, roomName, sync]);
 
   return (
     <>

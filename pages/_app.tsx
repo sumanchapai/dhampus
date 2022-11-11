@@ -25,18 +25,17 @@ export default function MyApp({
 }: AppProps): JSX.Element {
   const [globalContextValue, setGlobalContextValue] = useGlobalContext();
   const [isBrowser, setIsBrowser] = React.useState(false);
-  const [room, _] = React.useState("default-room-to-not-use");
   React.useEffect(() => {
     setIsBrowser(true);
     const ydoc = new Doc();
     // Need to try what will be the effect of passing empty list of signaling servers
-    const networkProvider = new WebrtcProvider(room, ydoc);
+    const networkProvider = new WebrtcProvider("himgreen-pax-viralroom-room-to-not-use", ydoc);
     setGlobalContextValue({
       network: networkProvider,
       doc: ydoc,
     });
     new IndexeddbPersistence("syn-index-db", ydoc);
-  }, []);
+  }, [setGlobalContextValue]);
   return (
     <SessionProvider session={session}>
       <GlobalContext.Provider value={globalContextValue}>

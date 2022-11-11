@@ -58,7 +58,7 @@ export default function AwareNess() {
       path: "",
     };
     awareness.setLocalStateField("user", localUserState);
-  }, []);
+  }, [awareness]);
   const router = useRouter();
   const myPath = router?.asPath;
   // Filter by active users, and users in current room
@@ -71,7 +71,7 @@ export default function AwareNess() {
   useEffect(() => {
     const oldState = awareness.getLocalState()["user"] as LocalUserState;
     awareness.setLocalStateField("user", { ...oldState, path: router.asPath });
-  }, [router.asPath]);
+  }, [awareness, router.asPath]);
   return (
     <>
       {users
